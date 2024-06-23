@@ -1,7 +1,8 @@
-from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 import os
 import json
+import asyncio
 from package.SecretKey import SecretKey
 from stock_search import search_stock
 from chart import draw_chart
@@ -101,11 +102,18 @@ async def show_recent_searches(update: Update, context: ContextTypes.DEFAULT_TYP
         message = "최근 검색한 종목이 없습니다."
     await context.bot.send_message(chat_id=chat_id, text=message)
 
+async def set_commands(bot):
+    commands = [
+        BotCommand("start", "시작하기"),
+        BotCommand("recent", "최근 검색 종목")
+    ]
+    await bot.set_my_commands(commands)
+
 def main():
     secret_key = SecretKey()
     secret_key.load_secrets()
     
-    token = secret_key.TELEGRAM_BOT_TOKEN_REPORT_ALARM_SECRET
+    token = secret_key.TELEGRAM_BOT_TOKEN_MAGIC_FORMULA_SECRET
     application = ApplicationBuilder().token(token).build()
 
     recent_searches = load_recent_searches()
@@ -115,6 +123,10 @@ def main():
     application.add_handler(CommandHandler("recent", show_recent_searches))  # 최근 검색 종목 명령어 추가
     application.add_handler(CallbackQueryHandler(select_stock, pattern=r'^\d{6}$'))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+    # asyncio 이벤트 루프에서 명령어 설정
+    loop = asyncio.get_event_loop()
+    loop.run_until_complete(set_commands(application.bot))
 
     application.run_polling()
 
