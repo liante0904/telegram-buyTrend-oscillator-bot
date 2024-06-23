@@ -113,7 +113,7 @@ def main():
     secret_key = SecretKey()
     secret_key.load_secrets()
     
-    token = secret_key.TELEGRAM_BOT_TOKEN_MAGIC_FORMULA_SECRET
+    token = secret_key.TELEGRAM_BOT_TOKEN_REPORT_ALARM_SECRET
     application = ApplicationBuilder().token(token).build()
 
     recent_searches = load_recent_searches()
