@@ -6,21 +6,10 @@ import asyncio
 from package.SecretKey import SecretKey
 from stock_search import search_stock
 from chart import draw_chart
+from recent_searches import load_recent_searches, save_recent_searches, show_recent_searches
+from report_search import search_report
 
-# 파일 경로 설정
-RECENT_SEARCHES_FILE = 'recent_searches.json'
-
-def load_recent_searches():
-    if os.path.exists(RECENT_SEARCHES_FILE):
-        with open(RECENT_SEARCHES_FILE, 'r', encoding='utf-8') as file:
-            return json.load(file)
-    return {}
-
-def save_recent_searches(recent_searches):
-    with open(RECENT_SEARCHES_FILE, 'w', encoding='utf-8') as file:
-        json.dump(recent_searches, file, ensure_ascii=False, indent=4)
-
-async def start(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
+async def chart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
     await context.bot.send_message(chat_id=chat_id, text='안녕하세요! 주식 차트 생성 봇입니다. 차트를 생성할 주식의 종목명을 입력하세요.')
     context.user_data['next_command'] = 'generate_chart'
@@ -53,9 +42,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> 
                 else:
                     await update.message.reply_text(f"차트 파일을 찾을 수 없습니다: {chart_filename}")
 
-                # /start 명령을 자동으로 호출하고 상태를 재설정
+                # /chart 명령을 자동으로 호출하고 상태를 재설정
                 context.user_data['next_command'] = None
-                await start(update, context)
+                await chart(update, context)
             else:
                 buttons = [[InlineKeyboardButton(f"{result['name']} ({result['code']})", callback_data=result['code'])] for result in results]
                 reply_markup = InlineKeyboardMarkup(buttons)
@@ -88,24 +77,15 @@ async def select_stock(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
             await context.bot.send_photo(chat_id=update.effective_chat.id, photo=open(chart_filename, 'rb'))
             break
 
-    # /start 명령을 자동으로 호출하고 상태를 재설정
+    # /chart 명령을 자동으로 호출하고 상태를 재설정
     context.user_data['next_command'] = None
-    await start(update, context)
-
-async def show_recent_searches(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
-    chat_id = update.effective_chat.id
-    user_id = str(update.effective_user.id)
-    recent_searches = context.bot_data.get('recent_searches', {}).get(user_id, [])
-    if recent_searches:
-        message = "최근 검색한 종목들:\n" + "\n".join(search['name'] for search in recent_searches)
-    else:
-        message = "최근 검색한 종목이 없습니다."
-    await context.bot.send_message(chat_id=chat_id, text=message)
+    await chart(update, context)
 
 async def set_commands(bot):
     commands = [
-        BotCommand("start", "시작하기"),
-        BotCommand("recent", "최근 검색 종목")
+        BotCommand("chart", "수급오실레이터 차트"),
+        BotCommand("recent", "최근 검색 종목"),
+        BotCommand("report", "레포트 검색기")
     ]
     await bot.set_my_commands(commands)
 
@@ -119,8 +99,9 @@ def main():
     recent_searches = load_recent_searches()
     application.bot_data['recent_searches'] = recent_searches
 
-    application.add_handler(CommandHandler("start", start))
+    application.add_handler(CommandHandler("chart", chart))  # /chart 명령어 추가
     application.add_handler(CommandHandler("recent", show_recent_searches))  # 최근 검색 종목 명령어 추가
+    application.add_handler(CommandHandler("report", search_report))  # 레포트 검색기 명령어 추가
     application.add_handler(CallbackQueryHandler(select_stock, pattern=r'^\d{6}$'))
     application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
 

@@ -9,7 +9,7 @@ def search_stock(query):
 
     response = requests.get(url, params=params)
     data = response.json()
-
+    print(data)
     # 필터링된 결과를 저장할 리스트
     filtered_items = [
         {
@@ -17,8 +17,8 @@ def search_stock(query):
             'code': item['code']
         }
         for item in data['items']
-        if item['typeCode'] in ['KOSPI', 'KOSDAQ']
-        and not (400000 <= int(item['code']) <= 499999 and '스팩' in item['name'])
+        if  item['typeCode'] in ['KOSPI', 'KOSDAQ']
+        and not (40000 <= int(item['code'][0:5]) <= 49999 and '스팩' in item['name'])
     ]
-
+    print(filtered_items)
     return filtered_items
