@@ -37,3 +37,4 @@ secrets.json
 *.png
 nohup.out
 recent_searches.json
+*:Zone.Identifier
