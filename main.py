@@ -13,7 +13,7 @@ from chart_handler import generate_and_send_charts
 
 async def chart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
-    await context.bot.send_message(chat_id=chat_id, text='수급오실레이터 차트 생성입니다. \n 차트를 생성할 주식의 종목명을 입력하세요. \n 쉼표(,) 혹은 여러줄의 종목명으로도 가능합니다. ')
+    await context.bot.send_message(chat_id=chat_id, text='수급오실레이터 차트 생성입니다. \n\n 종목명 혹은 종목코드를 입력하세요. \n 쉼표(,) 혹은 여러줄로 입력하면 다중생성이 가능합니다. \n 종목코드로 입력시 더 빠름')
     context.user_data['next_command'] = 'generate_chart'
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
@@ -37,7 +37,7 @@ async def process_stock_list(update: Update, context: ContextTypes.DEFAULT_TYPE,
         results = search_stock(stock_name)
         if results and len(results) == 1:
             stock_name, stock_code = results[0]['name'], results[0]['code']
-            await message.reply_text(f"{stock_name}에 대한 차트를 생성 중...")
+            await message.reply_text(f"{stock_name} 차트를 생성 중...")
 
             # 최근 검색 종목에 추가 (중복 방지)
             if user_id not in context.bot_data['recent_searches']:
@@ -102,7 +102,7 @@ async def select_stock(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     for result in results:
         if result['code'] == selected_code:
             stock_name, stock_code = result['name'], result['code']
-            await query.edit_message_text(f"{stock_name}에 대한 차트를 생성 중...")
+            await query.edit_message_text(f"{stock_name} 차트를 생성 중...")
 
             # 최근 검색 종목에 추가 (중복 방지)
             user_id = str(query.from_user.id)
