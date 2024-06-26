@@ -20,6 +20,7 @@ jobs:
 
     - name: Install dependencies
       run: |
+        cd /home/ubuntu/dev/telegram-stock-info-bot  # 실제 배포할 프로젝트 경로로 이동
         if [ ! -d "venv" ]; then
           python -m venv venv  # venv가 없을 경우에만 생성
         fi
