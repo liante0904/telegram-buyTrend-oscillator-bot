@@ -16,7 +16,7 @@ idna==3.7
 kiwisolver==1.4.5
 matplotlib==3.9.0
 multipledispatch==1.0.0
-numpy==2.0.0
+numpy>=1.16,<2.0  # 호환 가능한 범위로 설정
 packaging==24.1
 pandas==2.2.2
 pillow==10.3.0
