@@ -14,11 +14,11 @@ httpcore==1.0.5
 httpx==0.27.0
 idna==3.7
 kiwisolver==1.4.5
-matplotlib==3.7.5  # 호환 가능한 최신 버전으로 변경
+matplotlib==3.7.5
 multipledispatch==1.0.0
 numpy>=1.16,<2.0
 packaging==24.1
-pandas==2.2.2
+pandas==2.0.3  # 호환 가능한 최신 버전으로 변경
 pillow==10.3.0
 pykrx==1.0.45
 pyparsing==3.1.2
