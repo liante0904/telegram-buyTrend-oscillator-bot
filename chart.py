@@ -8,7 +8,12 @@ import pandas as pd
 import os
 import subprocess
 
+CHART_DIR = "chart"
+
 def draw_chart(stock_code, stock_name):
+    if not os.path.exists(CHART_DIR):
+        os.makedirs(CHART_DIR)
+        
     now = datetime.now()
     if now.hour < 18:
         end_date = (now - timedelta(days=1)).strftime('%Y-%m-%d')
@@ -68,7 +73,7 @@ def draw_chart(stock_code, stock_name):
 
     # 마지막 데이터 날짜로 파일명 생성
     last_date = data.index[-1].strftime('%Y%m%d')
-    chart_filename = f'{stock_name}_{stock_code}_{last_date}_chart.png'
+    chart_filename = os.path.join(CHART_DIR, f'{stock_name}_{stock_code}_{last_date}_chart.png')
     fig.savefig(chart_filename, format='png')
     plt.close(fig)
     print(f"Chart saved as: {chart_filename}")
@@ -84,6 +89,16 @@ def open_image(image_path):
             os.startfile(image_path)  # Windows
         elif os.name == 'mac':
             subprocess.run(['open', image_path])  # macOS
+
+def get_last_date(stock_code):
+    now = datetime.now()
+    if now.hour < 18:
+        end_date = (now - timedelta(days=1)).strftime('%Y-%m-%d')
+    else:
+        end_date = now.strftime('%Y-%m-%d')
+    start_date = (datetime.strptime(end_date, '%Y-%m-%d') - timedelta(days=120)).strftime('%Y-%m-%d')
+    trading_value = stock.get_market_trading_value_by_date(start_date, end_date, stock_code)
+    return trading_value.index[-1].strftime('%Y%m%d')
 
 def main():
     stock_code = '005930'  # 예시: 삼성전자

@@ -6,10 +6,10 @@ import asyncio
 import re
 from package.SecretKey import SecretKey
 from stock_search import search_stock
-from chart import draw_chart
+from chart import draw_chart, CHART_DIR
 from recent_searches import load_recent_searches, save_recent_searches, show_recent_searches
 from report_search import search_report
-from chart_handler import generate_and_send_charts
+from chart_handler import generate_and_send_charts, generate_and_send_charts_from_files
 
 async def chart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
@@ -60,7 +60,7 @@ async def process_stock_list(update: Update, context: ContextTypes.DEFAULT_TYPE,
             context.user_data['remaining_stocks'] = stock_list[stock_list.index(stock_name) + 1:]
             return
         else:
-            await message.reply_text(f"{stock_name}({stock_code}) 검색 결과가 없습니다. 다시 시도하세요.")
+            await message.reply_text(f"{stock_name} 검색 결과가 없습니다. 다시 시도하세요.")
 
     # 미디어 그룹을 한 번만 전송
     await generate_and_send_charts_from_files(context, update.effective_chat.id, context.user_data['generated_charts'])
@@ -68,6 +68,7 @@ async def process_stock_list(update: Update, context: ContextTypes.DEFAULT_TYPE,
     # 모든 차트 생성 후 상태 재설정
     context.user_data['next_command'] = None
     await context.bot.send_message(chat_id=update.effective_chat.id, text='모든 차트를 전송했습니다. 다른 종목을 검색하시려면 종목명을 입력해주세요.')
+    context.user_data['next_command'] = 'generate_chart'  # 상태 재설정
 
 async def generate_and_send_charts_from_files(context, chat_id, chart_files):
     media_groups = []
@@ -130,6 +131,7 @@ async def select_stock(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
         await generate_and_send_charts_from_files(context, update.callback_query.message.chat_id, context.user_data.get('generated_charts', []))
         context.user_data['next_command'] = None
         await context.bot.send_message(chat_id=update.callback_query.message.chat_id, text='모든 차트를 전송했습니다. 다른 종목을 검색하시려면 종목명을 입력해주세요.')
+        context.user_data['next_command'] = 'generate_chart'  # 상태 재설정
 
 async def set_commands(bot):
     commands = [
@@ -143,7 +145,7 @@ def main():
     secret_key = SecretKey()
     secret_key.load_secrets()
     
-    token = secret_key.TELEGRAM_BOT_TOKEN_REPORT_ALARM_SECRET
+    token = secret_key.TELEGRAM_BOT_TOKEN_MAGIC_FORMULA_SECRET
     application = ApplicationBuilder().token(token).build()
 
     recent_searches = load_recent_searches()
@@ -162,4 +164,6 @@ def main():
     application.run_polling()
 
 if __name__ == '__main__':
+    if not os.path.exists(CHART_DIR):
+        os.makedirs(CHART_DIR)
     main()
