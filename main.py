@@ -37,7 +37,7 @@ async def process_stock_list(update: Update, context: ContextTypes.DEFAULT_TYPE,
         results = search_stock(stock_name)
         if results and len(results) == 1:
             stock_name, stock_code = results[0]['name'], results[0]['code']
-            await message.reply_text(f"{stock_name} 차트를 생성 중...")
+            await message.reply_text(f"{stock_name}({stock_code}) 차트를 생성 중...")
 
             # 최근 검색 종목에 추가 (중복 방지)
             if user_id not in context.bot_data['recent_searches']:
@@ -60,7 +60,7 @@ async def process_stock_list(update: Update, context: ContextTypes.DEFAULT_TYPE,
             context.user_data['remaining_stocks'] = stock_list[stock_list.index(stock_name) + 1:]
             return
         else:
-            await message.reply_text(f"{stock_name} 검색 결과가 없습니다. 다시 시도하세요.")
+            await message.reply_text(f"{stock_name}({stock_code}) 검색 결과가 없습니다. 다시 시도하세요.")
 
     # 미디어 그룹을 한 번만 전송
     await generate_and_send_charts_from_files(context, update.effective_chat.id, context.user_data['generated_charts'])
@@ -102,7 +102,7 @@ async def select_stock(update: Update, context: ContextTypes.DEFAULT_TYPE) -> No
     for result in results:
         if result['code'] == selected_code:
             stock_name, stock_code = result['name'], result['code']
-            await query.edit_message_text(f"{stock_name} 차트를 생성 중...")
+            await query.edit_message_text(f"{stock_name}({stock_code}) 차트를 생성 중...")
 
             # 최근 검색 종목에 추가 (중복 방지)
             user_id = str(query.from_user.id)
