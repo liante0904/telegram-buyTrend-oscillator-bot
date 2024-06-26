@@ -16,7 +16,7 @@ jobs:
     - name: Set up Python
       uses: actions/setup-python@v4
       with:
-        python-version: '3.10.12'  # Python 3.8.16 버전 설정
+        python-version: '3.10.12'  # Python 3.10.12 배포서버 <-> 3.10.2 개발
 
     - name: Install dependencies
       run: |
