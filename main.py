@@ -1,15 +1,15 @@
 from telegram import Update, InlineKeyboardButton, InlineKeyboardMarkup, BotCommand, InputMediaPhoto
 from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, CallbackQueryHandler, ContextTypes
 import os
-import json
 import asyncio
 import re
+from dotenv import load_dotenv
 from package.SecretKey import SecretKey
 from stock_search import search_stock
 from chart import draw_chart, CHART_DIR
 from recent_searches import load_recent_searches, save_recent_searches, show_recent_searches
 from report_search import search_report
-from chart_handler import generate_and_send_charts, generate_and_send_charts_from_files
+from chart_handler import generate_and_send_charts_from_files
 
 async def chart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
@@ -144,8 +144,16 @@ async def set_commands(bot):
 def main():
     secret_key = SecretKey()
     secret_key.load_secrets()
-    
     token = secret_key.TELEGRAM_BOT_TOKEN_REPORT_ALARM_SECRET
+    
+    load_dotenv()  # .env 파일의 환경 변수를 로드합니다
+    env = os.getenv('ENV')
+
+    if env == 'production':
+        token = os.getenv('TELEGRAM_BOT_TOKEN_PROD')
+    else:
+        token = os.getenv('TELEGRAM_BOT_TOKEN_TEST')
+
     application = ApplicationBuilder().token(token).build()
 
     recent_searches = load_recent_searches()
