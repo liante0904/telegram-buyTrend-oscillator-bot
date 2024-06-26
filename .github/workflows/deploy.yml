@@ -1,0 +1,45 @@
+name: Deploy
+
+on:
+  push:
+    branches:
+      - master  # master 브랜치에 푸시할 때 트리거
+
+jobs:
+  deploy:
+    runs-on: ubuntu-22.04  # GitHub Actions에서 Ubuntu 22.04 환경을 사용
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v2
+
+    - name: Set up Python
+      uses: actions/setup-python@v2
+      with:
+        python-version: '3.10.12'  # Python 3.10.12 버전 설정
+
+    - name: Install dependencies
+      run: |
+        if [ ! -d "venv" ]; then
+          python -m venv venv  # venv가 없을 경우에만 생성
+        fi
+        source venv/bin/activate
+        pip install --upgrade pip
+        pip install -r requirements.txt
+
+    - name: Deploy to Server
+      env:
+        SSH_PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+        SERVER_HOST: ${{ secrets.SERVER_HOST }}
+        SERVER_USER: ${{ secrets.SERVER_USER }}
+      run: |
+        mkdir -p ~/.ssh
+        echo "$SSH_PRIVATE_KEY" > ~/.ssh/id_rsa
+        chmod 600 ~/.ssh/id_rsa
+        ssh -o StrictHostKeyChecking=no $SERVER_USER@$SERVER_HOST << 'EOF'
+          cd /home/ubuntu/dev/telegram-stock-info-bot  # 실제 배포할 프로젝트 경로
+          git pull origin master
+          source venv/bin/activate  # 가상 환경 활성화
+          pip install -r requirements.txt  # 종속성 설치
+          sudo systemctl restart telegram-bot.service  # 서비스 재시작
+        EOF
