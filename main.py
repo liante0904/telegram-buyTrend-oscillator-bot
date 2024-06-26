@@ -13,7 +13,7 @@ from chart_handler import generate_and_send_charts
 
 async def chart(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
     chat_id = update.effective_chat.id
-    await context.bot.send_message(chat_id=chat_id, text='안녕하세요! 주식 차트 생성 봇입니다. \n 차트를 생성할 주식의 종목명을 입력하세요. \n (종목리스트를 전송하면 다중 전송됩니다. (한줄에 한종목 혹은 쉼표로 구분))')
+    await context.bot.send_message(chat_id=chat_id, text='수급오실레이터 차트 생성입니다. \n 차트를 생성할 주식의 종목명을 입력하세요. \n 쉼표(,) 혹은 여러줄의 종목명으로도 가능합니다. ')
     context.user_data['next_command'] = 'generate_chart'
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE) -> None:
