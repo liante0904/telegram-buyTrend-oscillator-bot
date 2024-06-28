@@ -1,18 +1,28 @@
+# naver_report_search_pc.py
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+from datetime import datetime, timedelta
 
-def get_research_data(itemName='', itemCode='', writeFromDate='', writeToDate=''):
+def get_research_data(itemName, itemCode, writeFromDate='', writeToDate=''):
     print(f"Fetching research data for: {itemName} ({itemCode})")
-    
+
+    if not writeToDate:
+        writeToDate = datetime.today().strftime('%Y-%m-%d')
+    if not writeFromDate:
+        writeFromDate = (datetime.today() - timedelta(days=30)).strftime('%Y-%m-%d')
+
     url = 'https://finance.naver.com/research/company_list.naver'
     params = {
-        'itemName': itemName,
-        'itemCode': itemCode,
+        'keyword': '',
+        'brokerCode': '',
         'writeFromDate': writeFromDate,
         'writeToDate': writeToDate,
-        'x': 17,
-        'y': 14
+        'searchType': 'itemCode',
+        'itemName': itemName,
+        'itemCode': itemCode,
+        'x': 46,
+        'y': 18
     }
     response = requests.get(url, params=params)
     soup = BeautifulSoup(response.text, 'html.parser')
@@ -23,8 +33,8 @@ def get_research_data(itemName='', itemCode='', writeFromDate='', writeToDate=''
     table = soup.find('table', class_='type_1')
     
     if table:
-        rows = table.find_all('tr')[2:]
-
+        rows = table.find_all('tr')
+        
         for row in rows:
             cols = row.find_all('td')
             if len(cols) < 6:
@@ -46,33 +56,31 @@ def get_research_data(itemName='', itemCode='', writeFromDate='', writeToDate=''
     print(f"Data fetched: {df.shape[0]} rows")
     return df
 
-def search_stock(item_name):
-    print(f"Searching stock for: {item_name}")
-    
-    search_url = f'https://finance.naver.com/search/search.nhn?query={item_name}'
-    response = requests.get(search_url)
-    soup = BeautifulSoup(response.text, 'html.parser')
-    
-    item_code = ''
-    stock_link = soup.find('a', {'class': 'stock_item'})
-    if stock_link:
-        item_code = stock_link['href'].split('=')[-1]
-    
-    print(f"Found stock code: {item_code}")
-    if item_code:
-        df = get_research_data(itemName=item_name, itemCode=item_code)
-        results = []
-        if not df.empty:
-            for _, row in df.iterrows():
-                results.append({'name': row['종목명'], 'title': row['제목'], 'broker': row['브로커'], 'link': row['파일보기'], 'date': row['작성일'], 'num': row['번호'], 'code': item_code})
-        print(f"Search results: {len(results)} found")
-        return results
-    else:
-        print(f"No stock code found for {item_name}")
-        return []
+def search_stock_report(item_name, item_code, writeFromDate='', writeToDate=''):
+    df = get_research_data(itemName=item_name, itemCode=item_code, writeFromDate=writeFromDate, writeToDate=writeToDate)
+    results = []
+    if not df.empty:
+        for _, row in df.iterrows():
+            results.append({
+                'name': row['종목명'],
+                'title': row['제목'],
+                'broker': row['브로커'],
+                'link': row['파일보기'],
+                'date': row['작성일'],
+                'num': row['번호'],
+                'code': item_code
+            })
+    print(f"Search results: {len(results)} found")
+    return results
 
-# Example usage
 if __name__ == "__main__":
-    results = search_stock('삼성전자')
+    # 시작일, 종료일, 종목명, 종목코드 설정
+    fr_dt = ''
+    to_dt = ''
+    item_name = '삼성전자'
+    item_code = '005930'
+
+    # 검색 실행
+    results = search_stock_report(item_name, item_code, fr_dt, to_dt)
     for result in results:
         print(result)
