@@ -63,7 +63,7 @@ async def fetch_and_send_reports(update: Update, context: CallbackContext, user_
 
         buttons = [[InlineKeyboardButton("이전 검색", callback_data='previous_search')]]
         reply_markup = InlineKeyboardMarkup(buttons)
-        await message.reply_text("이전일자(1달전) 혹은 다른 종목을 검색할 수 있습니다.", reply_markup=reply_markup)
+        await message.reply_text("이전일자(2주일) 혹은 다른 종목을 검색할 수 있습니다.", reply_markup=reply_markup)
     else:
         await message.reply_text(f"{stock_name}({stock_code})에 대한 레포트를 찾을 수 없습니다.")
 
