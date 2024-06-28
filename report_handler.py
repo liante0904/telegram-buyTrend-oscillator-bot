@@ -8,7 +8,7 @@ from datetime import datetime, timedelta
 
 async def process_report_request(update: Update, context: CallbackContext, user_id: str, message) -> None:
     stock_list = context.user_data.get('stock_list', [])
-    writeFromDate = context.user_data.get('writeFromDate', (datetime.today() - timedelta(days=30)).strftime('%Y-%m-%d'))
+    writeFromDate = context.user_data.get('writeFromDate', (datetime.today() - timedelta(days=14)).strftime('%Y-%m-%d'))
     writeToDate = datetime.today().strftime('%Y-%m-%d')
 
     for stock_name in stock_list:

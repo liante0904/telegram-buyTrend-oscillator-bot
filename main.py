@@ -114,7 +114,7 @@ async def select_stock(update: Update, context: CallbackContext) -> None:
     for result in results:
         if result['code'] == selected_code:
             stock_name, stock_code = result['name'], result['code']
-            context.user_data['writeFromDate'] = context.user_data.get('writeFromDate', (datetime.today() - timedelta(days=30)).strftime('%Y-%m-%d'))
+            context.user_data['writeFromDate'] = context.user_data.get('writeFromDate', (datetime.today() - timedelta(days=14)).strftime('%Y-%m-%d'))
             context.user_data['writeToDate'] = datetime.today().strftime('%Y-%m-%d')
             await fetch_and_send_reports(update, context, str(query.from_user.id), query.message, stock_name, stock_code, context.user_data['writeFromDate'], context.user_data['writeToDate'])
 
