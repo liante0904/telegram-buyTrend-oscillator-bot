@@ -37,7 +37,7 @@ async def handle_message(update: Update, context: CallbackContext) -> None:
         user_input = update.message.text
         stock_list = [stock.strip() for stock in re.split('[,\n]', user_input) if stock.strip()]
         context.user_data['stock_list'] = stock_list
-        context.user_data['writeFromDate'] = (datetime.today() - timedelta(days=30)).strftime('%Y-%m-%d')
+        context.user_data['writeFromDate'] = (datetime.today() - timedelta(days=14)).strftime('%Y-%m-%d')
         context.user_data['writeToDate'] = datetime.today().strftime('%Y-%m-%d')
         await process_report_request(update, context, user_id, update.message)
 

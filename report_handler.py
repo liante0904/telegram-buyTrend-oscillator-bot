@@ -59,7 +59,7 @@ async def fetch_and_send_reports(update: Update, context: CallbackContext, user_
             header = ""
 
         # 이전 검색 날짜 업데이트
-        context.user_data['writeFromDate'] = (datetime.strptime(writeFromDate, '%Y-%m-%d') - timedelta(days=30)).strftime('%Y-%m-%d')
+        context.user_data['writeFromDate'] = (datetime.strptime(writeFromDate, '%Y-%m-%d') - timedelta(days=14)).strftime('%Y-%m-%d')
 
         buttons = [[InlineKeyboardButton("이전 검색", callback_data='previous_search')]]
         reply_markup = InlineKeyboardMarkup(buttons)
