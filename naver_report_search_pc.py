@@ -1,10 +1,17 @@
+# naver_report_search_pc.py
 import requests
 from bs4 import BeautifulSoup
 import pandas as pd
+from datetime import datetime, timedelta
 
 def get_research_data(itemName, itemCode, writeFromDate='', writeToDate=''):
     print(f"Fetching research data for: {itemName} ({itemCode})")
-    
+
+    if not writeToDate:
+        writeToDate = datetime.today().strftime('%Y-%m-%d')
+    if not writeFromDate:
+        writeFromDate = (datetime.today() - timedelta(days=30)).strftime('%Y-%m-%d')
+
     url = 'https://finance.naver.com/research/company_list.naver'
     params = {
         'keyword': '',
@@ -49,8 +56,8 @@ def get_research_data(itemName, itemCode, writeFromDate='', writeToDate=''):
     print(f"Data fetched: {df.shape[0]} rows")
     return df
 
-def search_stock(item_name, item_code):
-    df = get_research_data(itemName=item_name, itemCode=item_code)
+def search_stock_report(item_name, item_code, writeFromDate='', writeToDate=''):
+    df = get_research_data(itemName=item_name, itemCode=item_code, writeFromDate=writeFromDate, writeToDate=writeToDate)
     results = []
     if not df.empty:
         for _, row in df.iterrows():
@@ -74,6 +81,6 @@ if __name__ == "__main__":
     item_code = '005930'
 
     # 검색 실행
-    results = search_stock(item_name, item_code)
+    results = search_stock_report(item_name, item_code, fr_dt, to_dt)
     for result in results:
         print(result)
