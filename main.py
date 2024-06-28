@@ -110,19 +110,53 @@ async def select_stock(update: Update, context: CallbackContext) -> None:
     await query.answer()
     selected_code = query.data
     results = context.user_data.get('search_results', [])
+    next_command = context.user_data.get('next_command')
 
     for result in results:
         if result['code'] == selected_code:
             stock_name, stock_code = result['name'], result['code']
-            context.user_data['writeFromDate'] = context.user_data.get('writeFromDate', (datetime.today() - timedelta(days=14)).strftime('%Y-%m-%d'))
-            context.user_data['writeToDate'] = datetime.today().strftime('%Y-%m-%d')
-            await fetch_and_send_reports(update, context, str(query.from_user.id), query.message, stock_name, stock_code, context.user_data['writeFromDate'], context.user_data['writeToDate'])
+            if next_command == 'generate_chart':
+                await process_selected_stock_for_chart(update, context, stock_name, stock_code)
+            elif next_command == 'search_report':
+                await process_selected_stock_for_report(update, context, stock_name, stock_code)
+
+async def process_selected_stock_for_chart(update: Update, context: CallbackContext, stock_name: str, stock_code: str):
+    chat_id = update.effective_chat.id
+    user_id = str(update.effective_user.id)
+    
+    await update.callback_query.message.reply_text(f"{stock_name}({stock_code}) 차트를 생성 중...")
+
+    # 최근 검색 종목에 추가 (중복 방지)
+    if user_id not in context.bot_data['recent_searches']:
+        context.bot_data['recent_searches'][user_id] = []
+    if not any(search['name'] == stock_name for search in context.bot_data['recent_searches'][user_id]):
+        context.bot_data['recent_searches'][user_id].append({'name': stock_name, 'code': stock_code})
+    save_recent_searches(context.bot_data['recent_searches'])
+
+    chart_filename = draw_chart(stock_code, stock_name)
+    if os.path.exists(chart_filename):
+        context.user_data['generated_charts'].append(chart_filename)
+    else:
+        await update.callback_query.message.reply_text(f"차트 파일을 찾을 수 없습니다: {chart_filename}")
+
+    # 미디어 그룹을 한 번만 전송
+    await generate_and_send_charts_from_files(context, chat_id, context.user_data['generated_charts'])
+
+    # 모든 차트 생성 후 상태 재설정
+    context.user_data['next_command'] = None
+    await context.bot.send_message(chat_id=update.effective_chat.id, text='모든 차트를 전송했습니다. 다른 종목을 검색하시려면 종목명을 입력해주세요.')
+    context.user_data['next_command'] = 'generate_chart'  # 상태 재설정
+
+async def process_selected_stock_for_report(update: Update, context: CallbackContext, stock_name: str, stock_code: str):
+    context.user_data['writeFromDate'] = context.user_data.get('writeFromDate', (datetime.today() - timedelta(days=14)).strftime('%Y-%m-%d'))
+    context.user_data['writeToDate'] = datetime.today().strftime('%Y-%m-%d')
+    await fetch_and_send_reports(update, context, str(update.callback_query.from_user.id), update.callback_query.message, stock_name, stock_code, context.user_data['writeFromDate'], context.user_data['writeToDate'])
 
     # 나머지 종목 처리
     remaining_stocks = context.user_data.get('remaining_stocks', [])
     if remaining_stocks:
         context.user_data['stock_list'] = remaining_stocks
-        await process_report_request(update, context, str(query.from_user.id), query.message)
+        await process_report_request(update, context, str(update.callback_query.from_user.id), update.callback_query.message)
 
 async def set_commands(bot):
     commands = [
